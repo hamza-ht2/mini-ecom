@@ -9,6 +9,7 @@ const generateToken = (id, role)=>{
         {expiresIn:'7d'}
     )
 }
+
 const formatUserResponse = (user)=>({
     id: user._id,
     username: user.username,
@@ -44,9 +45,9 @@ export const login = async(req,res)=>{
             return res.status(400).json({message:'all fields are required'})
         }
         const user = await User.findOne({email})
-        if(!user) return res.status(401).json({message:'invalid crendentials'})
+        if(!user) return res.status(401).json({message:'invalid credentials'})
         const isMatch = await bcrypt.compare(password, user.password)
-        if(!isMatch) return res.status(401).json({message:'invalid crendentials'})
+        if(!isMatch) return res.status(401).json({message:'invalid credentials'})
         const token = generateToken(user._id, user.role)
         res.status(200).json({
             token,
@@ -54,6 +55,17 @@ export const login = async(req,res)=>{
         })
     } catch (error) {
         console.error('LOGIN ERROR',error)
+        res.status(500).json({message:'server error'})
+    }
+}
+
+export const getProfile = async(req,res)=>{
+    try {
+        const user = await User.findById(req.user.id).select('-password')
+        if(!user) return res.status(404).json({message:'User not found'})
+        res.status(200).json(formatUserResponse(user))
+    } catch (error) {
+        console.error('GET PROFILE ERROR',error)
         res.status(500).json({message:'server error'})
     }
 }

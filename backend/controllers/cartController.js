@@ -52,14 +52,17 @@ export const addToCart = async(req,res)=>{
 
 export const removeFromCart = async(req,res)=>{
     try {
-        const productId = req.params.id
+        const productId = req.params.productId  // Changed from req.params.id to req.params.productId
         const cart = await Cart.findOne({user: req.user._id})
         if(!cart) return res.status(404).json({message:'cart not found'})
+        
         const initialLength = cart.items.length
         cart.items = cart.items.filter(item => item.product.toString() !== productId)
+        
         if(cart.items.length === initialLength){
             return res.status(404).json({message:'product not found in cart'})
         }
+        
         await cart.save()
         await cart.populate('items.product')
         res.status(200).json(cart)
